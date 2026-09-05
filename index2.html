@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三原色大师实验室</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    padding: 20px;
+}
+.game-container {
+    width: 480px;
+    background: #16213e;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.header h1 {
+    font-size: 22px;
+    color: #e94560;
+    margin-bottom: 5px;
+}
+.header p {
+    font-size: 13px;
+    color: #a0a0a0;
+}
+
+/* 目标区域 */
+.target-section {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #0f3460;
+    border-radius: 12px;
+}
+.target-section h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #f0f0f0;
+}
+.target-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+.target-color {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+.target-detail {
+    text-align: left;
+}
+.target-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #e94560;
+}
+.target-hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* 颜料区域 */
+.palette-section {
+    margin-bottom: 15px;
+}
+.palette-section h3 {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #a0a0a0;
+}
+
+/* 滑块控制 */
+.sliders-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.slider-label {
+    width: 50px;
+    font-size: 13px;
+    font-weight: bold;
+}
+.slider-label.c { color: #00b4d8; }
+.slider-label.m { color: #e91e63; }
+.slider-label.y { color: #ffd700; }
+input[type="range"] {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.slider-c { background: linear-gradient(to right, #0f3460, #00b4d8); }
+.slider-m { background: linear-gradient(to right, #0f3460, #e91e63); }
+.slider-y { background: linear-gradient(to right, #0f3460, #ffd700); }
+.slider-value {
+    width: 40px;
+    text-align: right;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* 混合结果预览 */
+.preview-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #0f3460;
+    border-radius: 12px;
+}
+.preview-box {
+    text-align: center;
+}
+.preview-box p {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+}
+.preview-color {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #555;
+    margin: 0 auto;
+    transition: all 0.3s;
+}
+.preview-color.target { border-color: #fff; }
+.arrow {
+    font-size: 24px;
+    color: #888;
+}
+.similarity {
+    font-size: 14px;
+    color: #e94560;
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+/* 操作按钮 */
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-mix {
+    background: #e94560;
+    color: #fff;
+}
+.btn-mix:hover { background: #ff6b6b; }
+.btn-clear {
+    background: #555;
+    color: #fff;
+}
+.btn-clear:hover { background: #777; }
+.btn-hint {
+    background: #f39c12;
+    color: #fff;
+}
+.btn-hint:hover { background: #f1c40f; }
+
+/* 结果提示 */
+.result-msg {
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+}
+.result-msg.correct {
+    background: #2ecc71;
+    color: #fff;
+}
+.result-msg.wrong {
+    background: #e74c3c;
+    color: #fff;
+}
+.result-msg.hint {
+    background: #f39c12;
+    color: #fff;
+}
+.result-msg.empty {
+    background: transparent;
+}
+.result-detail {
+    font-size: 12px;
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+/* 动画 */
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+    50% { box-shadow: 0 0 30px rgba(46, 204, 113, 0.6); }
+}
+.glow { animation: glow 1s infinite; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+}
+.shake { animation: shake 0.4s; }
+</style>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <h1>🎨 三原色大师实验室</h1>
+        <p>精确调配 CMY 比例，匹配目标颜色！</p>
+    </div>
+
+    <!-- 目标颜色 -->
+    <div class="target-section">
+        <h3>🎯 目标颜色</h3>
+        <div class="target-info">
+            <div class="target-color" id="targetColor"></div>
+            <div class="target-detail">
+                <div class="target-name" id="targetName">?</div>
+                <div class="target-hint" id="targetHint">调整滑块精确匹配</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 颜料滑块 -->
+    <div class="palette-section">
+        <h3>🧪 调整颜料比例（0-100%）</h3>
+        <div class="sliders-area">
+            <div class="slider-row">
+                <span class="slider-label c">青色 C</span>
+                <input type="range" class="slider-c" id="sliderC" min="0" max="100" value="0" oninput="updatePreview()">
+                <span class="slider-value" id="valC">0%</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label m">品红 M</span>
+                <input type="range" class="slider-m" id="sliderM" min="0" max="100" value="0" oninput="updatePreview()">
+                <span class="slider-value" id="valM">0%</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label y">黄色 Y</span>
+                <input type="range" class="slider-y" id="sliderY" min="0" max="100" value="0" oninput="updatePreview()">
+                <span class="slider-value" id="valY">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 混合预览 -->
+    <div class="preview-area">
+        <div class="preview-box">
+            <p>目标</p>
+            <div class="preview-color target" id="previewTarget"></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="preview-box">
+            <p>你的调配</p>
+            <div class="preview-color" id="previewMix"></div>
+            <div class="similarity" id="similarity">相似度: 0%</div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="actions">
+        <button class="btn-mix" onclick="checkMatch()">✅ 提交</button>
+        <button class="btn-clear" onclick="clearSliders()">🔄 重置</button>
+        <button class="btn-hint" onclick="showHint()">💡 提示</button>
+    </div>
+
+    <!-- 结果提示 -->
+    <div class="result-msg empty" id="resultMsg"></div>
+</div>
+
+<script>
+const recipes = {
+    'cyan': { name: '青色', c: 100, m: 0, y: 0 },
+    'magenta': { name: '品红', c: 0, m: 100, y: 0 },
+    'yellow': { name: '黄色', c: 0, m: 0, y: 100 },
+    'blue': { name: '蓝色', c: 100, m: 100, y: 0 },
+    'green': { name: '绿色', c: 100, m: 0, y: 100 },
+    'red': { name: '红色', c: 0, m: 100, y: 100 },
+    'black': { name: '黑色', c: 100, m: 100, y: 100 },
+    'orange': { name: '橙色', c: 0, m: 60, y: 100 },
+    'purple': { name: '紫色', c: 80, m: 100, y: 0 },
+    'brown': { name: '棕色', c: 60, m: 80, y: 100 },
+    'darkgreen': { name: '深绿', c: 100, m: 0, y: 60 },
+    'navy': { name: '藏青', c: 100, m: 80, y: 40 }
+};
+
+const recipeList = Object.values(recipes);
+let currentTarget = null;
+
+function cmyToRGB(c, m, y) {
+    return {
+        r: Math.round(255 * (1 - c / 100)),
+        g: Math.round(255 * (1 - m / 100)),
+        b: Math.round(255 * (1 - y / 100))
+    };
+}
+
+function calcSimilarity(c1, m1, y1, target) {
+    const diff = Math.abs(c1 - target.c) + Math.abs(m1 - target.m) + Math.abs(y1 - target.y);
+    const maxDiff = 300;
+    return Math.max(0, Math.round(100 - (diff / maxDiff) * 100));
+}
+
+function init() {
+    nextTarget();
+}
+
+function nextTarget() {
+    currentTarget = recipeList[Math.floor(Math.random() * recipeList.length)];
+
+    const rgb = cmyToRGB(currentTarget.c, currentTarget.m, currentTarget.y);
+    const colorStr = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+
+    document.getElementById('targetColor').style.background = colorStr;
+    document.getElementById('previewTarget').style.background = colorStr;
+    document.getElementById('targetName').textContent = currentTarget.name;
+    document.getElementById('targetName').style.color = colorStr;
+
+    document.getElementById('resultMsg').className = 'result-msg empty';
+    document.getElementById('resultMsg').textContent = '';
+}
+
+function updatePreview() {
+    const c = parseInt(document.getElementById('sliderC').value);
+    const m = parseInt(document.getElementById('sliderM').value);
+    const y = parseInt(document.getElementById('sliderY').value);
+
+    document.getElementById('valC').textContent = c + '%';
+    document.getElementById('valM').textContent = m + '%';
+    document.getElementById('valY').textContent = y + '%';
+
+    const rgb = cmyToRGB(c, m, y);
+    document.getElementById('previewMix').style.background = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+
+    if (currentTarget) {
+        const sim = calcSimilarity(c, m, y, currentTarget);
+        document.getElementById('similarity').textContent = '相似度: ' + sim + '%';
+    }
+}
+
+function checkMatch() {
+    const c = parseInt(document.getElementById('sliderC').value);
+    const m = parseInt(document.getElementById('sliderM').value);
+    const y = parseInt(document.getElementById('sliderY').value);
+
+    const sim = calcSimilarity(c, m, y, currentTarget);
+
+    if (sim >= 85) {
+        showResult(`🎉 完美匹配！相似度 ${sim}%`, 'correct');
+
+        document.getElementById('previewMix').classList.add('glow');
+        setTimeout(() => document.getElementById('previewMix').classList.remove('glow'), 1000);
+
+        setTimeout(() => {
+            clearSliders();
+            nextTarget();
+        }, 2000);
+    } else if (sim >= 60) {
+        showResult(`🔥 很接近了！相似度 ${sim}%`, 'hint', '再微调一下试试');
+    } else {
+        showResult(`❌ 偏差较大，相似度 ${sim}%`, 'wrong', '目标: ' + currentTarget.name);
+        document.getElementById('previewMix').classList.add('shake');
+        setTimeout(() => document.getElementById('previewMix').classList.remove('shake'), 400);
+    }
+}
+
+function showHint() {
+    if (!currentTarget) return;
+    const hint = `💡 提示: 尝试 C:${currentTarget.c} M:${currentTarget.m} Y:${currentTarget.y} 附近`;
+    showResult(hint, 'hint');
+}
+
+function showResult(text, type, detail) {
+    const msg = document.getElementById('resultMsg');
+    msg.innerHTML = text + (detail ? `<div class="result-detail">${detail}</div>` : '');
+    msg.className = 'result-msg ' + type;
+}
+
+function clearSliders() {
+    document.getElementById('sliderC').value = 0;
+    document.getElementById('sliderM').value = 0;
+    document.getElementById('sliderY').value = 0;
+    updatePreview();
+}
+
+init();
+updatePreview();
+</script>
+</body>
+</html>
